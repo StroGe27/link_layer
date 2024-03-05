@@ -22,19 +22,20 @@ class SegmentList(APIView): # переименовать
             segments = json.load(f)
         print("ФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФ")
         error_chance = 40
-        loss_chance = "undefined"
-        status_loss = "undefined"
-        s = self._segments_to_packages(segments) # преобразование в биты
+        loss_chance = 10
+
+        s= self._segments_to_packages(segments) # преобразование в биты
         s = self._encode(s) # кодирование
         s, status_mistake = self._do_mistake(s, error_chance) # создание ошибки
+        status_loss = self._do_loss(loss_chance) # создание потери
         s = self._decode(s) # декодирование
-        self._packages_to_segments(s) # преобразование в человекочитаемый формат
+        tmp = self._packages_to_segments(s) # преобразование в человекочитаемый формат
 
         return Response([{
             "person": segments[0]["sender"],
             "text_before": segments[0]["payload"],
-            "text_after": "undefined",
-            "segment": s,
+            "text_after": tmp,
+            # "segment": s,
             "status_error": status_mistake,
             "status_loss": status_loss,
             "error_chance": error_chance,
@@ -48,8 +49,9 @@ class SegmentList(APIView): # переименовать
 
     def _segments_to_packages(self, segments):
         data = []
-        for x in bytes(segments[0]["payload"], "utf-8"):
-            for y in "{0:b}".format(x):
+        for x in segments[0]["payload"].encode('utf-8'):
+            # binary_value = format(ord(x), '08b')
+            for y in "{0:08b}".format(x):
                 data.append(y=='1')
         self._output_data(data, "данные в виде битов")
         print(len(data), "длина данных, до кодирования")
@@ -57,16 +59,13 @@ class SegmentList(APIView): # переименовать
         return data
     
     def _packages_to_segments(self, packages):
-        # data_to_read = []
-        # print(len(packages), "длина данных, после кодирования")
-        # for i in range(7, len(packages)+1, 7):
-        #     decoded_data, stat = self._decode(packages[i-7:i])
-        #     print(decoded_data, stat)
-        #     data_to_read.extend(decoded_data)
-        #     # print(encoded_data, " encoded segment num {}".format(i/4))
-        # print(data_to_read, " - read data")
-        # return data_to_read
-        return []
+        data_to_read = []
+        for i in range(8, len(packages)+1, 8):
+            tmp = 0
+            for j in range(i-1, i-9, -1):
+                tmp += packages[j]*pow(2, 7-j%8)
+            data_to_read.append(chr(tmp))
+        return ''.join(data_to_read)
 
     def _encode(self, data):
         data_to_send = []
@@ -145,3 +144,7 @@ class SegmentList(APIView): # переименовать
             data[random_index] = data[random_index] ^ True
         print("Рандомная ошибка равна: ", random_index, ", возможно - ",  len(data), ", Статус ошибки:", stat)
         return data, stat
+    
+    def _do_loss(self, loss_chance):
+        return random.randint(0, 100) <= loss_chance
+        

@@ -7,7 +7,7 @@ router = routers.DefaultRouter()
 
 urlpatterns = [
     path('', include(router.urls)),
-    path(r'segments1/', views.SegmentList.as_view(), name='stocks-list'),
+    path(r'1/', views.SegmentList.as_view(), name='stocks-list'),
     # path(r'segments/<int:pk>/', views.StockDetail.as_view(), name='stocks-detail'),
     # path(r'segments/<int:pk>/put/', views.put, name='stocks-put'),
     # path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
