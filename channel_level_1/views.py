@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from requests import post
+# from rest_framework import status
 
 from channel_level_1.serializers import SegmentSerializer
 from channel_level_1.models import Segment
@@ -8,40 +9,69 @@ from channel_level_1.models import Segment
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 
-import json
-# from channel_level_1.circle_code import *
-import numpy as np
+import json # в будущем удалить
 import random
 
 class SegmentList(APIView): # переименовать
     model_class = Segment
     serializer_class = SegmentSerializer
-    # Возвращает список акций
-    def get(self, request, format=None):
-        with open('file.json', 'r') as f: # данный код надо переписать для коннекта с транспортным уровнем
-            segments = json.load(f)
-        print("ФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФ")
+
+    def post(self, request, format=None):
         error_chance = 40
         loss_chance = 10
-
-        s= self._segments_to_packages(segments) # преобразование в биты
+        request = request.data
+        s = self._segments_to_packages(request) # преобразование в биты
         s = self._encode(s) # кодирование
         s, status_mistake = self._do_mistake(s, error_chance) # создание ошибки
         status_loss = self._do_loss(loss_chance) # создание потери
         s = self._decode(s) # декодирование
-        tmp = self._packages_to_segments(s) # преобразование в человекочитаемый формат
-
+        payload = self._packages_to_segments(s) # преобразование в человекочитаемый формат
+        # print(payload)
+        # post("http://localhost:порт_Ильи/УРЛ_Ильи/", json="""
+        # {
+        #     "sender": "{}",
+        #     "payload": "{}",
+        #     "dispatch_time": "{}",
+        #     "status_mistake": "{}"
+        # }
+        # """.format(request["sender"], payload, request["dispatch_time"], status_mistake)) # согласовать с Ильей формат отправляемых данных
+        
         return Response([{
-            "person": segments[0]["sender"],
-            "text_before": segments[0]["payload"],
-            "text_after": tmp,
-            # "segment": s,
-            "status_error": status_mistake,
-            "status_loss": status_loss,
-            "error_chance": error_chance,
-            "loss_chance": loss_chance,
+            "status": "ok",
+            "sender": request["sender"],
+            "text": payload
+        }])
+    
+    def get(self, request, format=None): # нужно для тестирования (пока что)
+        # with open('file.json', 'r') as f: # данный код надо переписать для коннекта с транспортным уровнем
+        #     segments = json.load(f)
+        # print("ФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФ")
+        # error_chance = 40
+        # loss_chance = 10
+        # segments = segments.json()
+        # s= self._segments_to_packages(segments) # преобразование в биты
+        # s = self._encode(s) # кодирование
+        # s, status_mistake = self._do_mistake(s, error_chance) # создание ошибки
+        # status_loss = self._do_loss(loss_chance) # создание потери
+        # s = self._decode(s) # декодирование
+        # tmp = self._packages_to_segments(s) # преобразование в человекочитаемый формат
+
+        # return Response([{
+        #     "person": segments["sender"],
+        #     "text_before": segments["payload"],
+        #     "text_after": tmp,
+        #     # "segment": s,
+        #     "status_error": status_mistake,
+        #     "status_loss": status_loss,
+        #     "error_chance": error_chance,
+        #     "loss_chance": loss_chance,
+        # }])
+        return Response([{
+            "status": "ok",
+            # "test_xor": self.logical_xor([True, True, False, False], [True, False, True, True]),
         }])
 
+    
     def _output_data(self, data, text = ""):
         for i in data:
             print((1 if i else 0), end=", ")
@@ -49,7 +79,9 @@ class SegmentList(APIView): # переименовать
 
     def _segments_to_packages(self, segments):
         data = []
-        for x in segments[0]["payload"].encode('utf-8'):
+        # print(segments.)
+        # payload_value = segments.json()["payload"]
+        for x in segments["payload"].encode('utf-8'):
             # binary_value = format(ord(x), '08b')
             for y in "{0:08b}".format(x):
                 data.append(y=='1')
@@ -83,7 +115,7 @@ class SegmentList(APIView): # переименовать
             if el[i] == False:
                 i += 1
                 continue
-            el[i:i+4] = np.logical_xor(el[i:i+4], [True, False, True, True])
+            el[i:i+4] = self.logical_xor(el[i:i+4], [True, False, True, True])
         return data + el[4:7]
     
     def _decode(self, data):
@@ -105,7 +137,7 @@ class SegmentList(APIView): # переименовать
             if el[i] == False:
                 i += 1
                 continue
-            el[i:i+4] = np.logical_xor(el[i:i+4], [True, False, True, True])
+            el[i:i+4] = self.logical_xor(el[i:i+4], [True, False, True, True])
         
         return data[0:4], el != [False, False, False, False, False, False, False]
 
@@ -130,7 +162,7 @@ class SegmentList(APIView): # переименовать
             if data_copy[i] == False:
                 i += 1
                 continue
-            data_copy[i:i+4] = np.logical_xor(data_copy[i:i+4], [True, False, True, True])
+            data_copy[i:i+4] = self.logical_xor(data_copy[i:i+4], [True, False, True, True])
         place_with_mistake = self._find_syndrom(data_copy[4:7])
         data[place_with_mistake] = data[place_with_mistake] ^ True # Иправляем её
         return data[0:4]
@@ -147,4 +179,6 @@ class SegmentList(APIView): # переименовать
     
     def _do_loss(self, loss_chance):
         return random.randint(0, 100) <= loss_chance
-        
+    
+    def logical_xor(self, a, b):
+        return [a[i] != b[i] for i in range(len(a))]
