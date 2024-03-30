@@ -20,7 +20,8 @@ class SegmentList(APIView): # переименовать
 
     @swagger_auto_schema(
         request_body=SegmentSerializer,  # Описывает структуру запроса
-        responses={200: SegmentSerializer}  # Описывает структуру ответа
+        responses={200: SegmentSerializer},  # Описывает структуру ответа
+        operation_description = "Произвести действия с сегментом и отправить на Транспортный уровень"
     )
     def post(self, request, format=None):
         error_chance = 40
@@ -59,7 +60,8 @@ class SegmentList(APIView): # переименовать
             }])
     
     @swagger_auto_schema(
-        responses={200: SegmentSerializer}  # Описывает структуру ответа
+        responses={200: SegmentSerializer},  # Описывает структуру ответа
+        operation_description = "Проверка работы"
     )
     def get(self, request, format=None):
         return Response([{

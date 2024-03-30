@@ -8,19 +8,16 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="Link layer API",
+      title="Link layer",
       default_version='v1',
-      description="API description",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@snippets.local"),
-      license=openapi.License(name="BSD License"),
+      description="API для кодирования/декодирования сегментов, а также создание/исправление ошибок в сегменте и потеря их",
    ),
 #    properties
    public=True,
    permission_classes=(permissions.AllowAny,),
 )
 urlpatterns = [
-    path(r'api/link_layer/', views.SegmentList.as_view(), name='stocks-list'),
-    path(r'api/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('swagger.yml', schema_view.without_ui(cache_timeout=0), name='schema-swagger'),
+    path(r'link_layer/', views.SegmentList.as_view(), name='stocks-list'),
+    path(r'swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('swagger.yaml', schema_view.without_ui(cache_timeout=0), name='schema-swagger'),
 ]

@@ -7,7 +7,9 @@ class SegmentSerializer(serializers.ModelSerializer):
         model = Segment
         # Поля, которые мы сериализуем
         fields = [
-            "sender",
-            "payload",
-            "dispatch_time"
+            "segment_number",
+            "amount_segments",
+            "segment_data",
+            "dispatch_time",
+            "sender"
         ]
