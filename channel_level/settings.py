@@ -39,6 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    #SWAGGER
+    'drf_yasg',
+    'rest_framework_swagger',
+
     # DRF
     'rest_framework',
 
@@ -54,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.CustomErrorHandlerMiddleware',
 ]
 
 ROOT_URLCONF = 'channel_level.urls'
